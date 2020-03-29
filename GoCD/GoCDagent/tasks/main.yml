@@ -1,0 +1,15 @@
+---
+# tasks file for GoCDagent
+
+- name: Download GoCD agent
+  command: sudo curl https://download.gocd.org/gocd.repo -o /etc/yum.repos.d/gocd.repo
+
+- name: Installing GoCD agent
+  yum:
+    name: go-agent
+    state: latest
+
+- name: start gocd agent
+  service:
+    name: go-agent
+    state: started
