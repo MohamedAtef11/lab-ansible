@@ -13,7 +13,7 @@
 - name: install java-1.8.0-openjdk
   yum:
     name: java-1.8.0-openjdk.x86_64
-    state: present
+    state: installed
 
 - name: Creates directory
   file:
@@ -23,17 +23,17 @@
 - name: download nexus
   get_url:
     url: https://download.sonatype.com/nexus/3/latest-unix.tar.gz
-    dest: /app
+    dest: /app/nexus.tar.gz
 
 - name: Extract nexus into /app
   unarchive:
-    src: /app/nexus-3.22.0-02-unix.tar.gz 
-    dest: /app
+    src: /app/nexus.tar.gz 
+    dest: /app/
     remote_src: yes
 
 - name: rename folder
   copy:
-    src: /app/nexus-3.22.0-02
+    src: /app/nexus-3.22.0-02/
     dest: /app/nexus
     remote_src: yes
 
@@ -41,23 +41,31 @@
   user:
     name: nexus
 
+- name: Add the nexus group
+  group:
+    name: nexus
+
 
 - name: Change file ownership, of nexus
   file:
     path: /app/nexus
     owner: nexus
+    group: nexus
+    recurse: yes
+    
+
 
 - name: Change file ownership, of sonatype-work
   file:
     path: /app/sonatype-work
     owner: nexus
-
+    group: nexus
 
 - name: Uncomment run_as_user parameter and set run_as_user="nexus"
-  lineinfile:
-    path: /app/nexus/nexus-3.22.0-02/bin/nexus.rc
-    regexp: '^# run_as_user'
-    line: 'run_as_user="nexus"'
+  replace:
+    path: /app/nexus/bin/nexus.rc
+    regexp: '#run_as_user="nexus"'
+    replace: 'run_as_user="nexus"'
 
 - name: Ansible create file if it doesn't exist nexus.service
   file:
@@ -87,20 +95,10 @@
 
 
 - name: chkconfig nexus on
-  command: chkconfig nexus on
+  command: "chkconfig nexus on"
 
 - name: start nexus
   service:
     name: nexus
     state: started
-
-
-
-
-
-    
-
-
-
-
-
+    enabled: yes
